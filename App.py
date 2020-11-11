@@ -276,16 +276,27 @@ if pagina == 'Modello di regressione Cape':
     immagine = fig1+fig2+rule+regr
     st.altair_chart(immagine, use_container_width=True)
     
-    st.markdown('''## Cos'è il PE di SHILLER?
-Si tratta di un indicatore che sta per cyclically-adjusted price-earnings ratio (Cape), ovvero rapporto prezzo utili aggiustato per i cicli, creato dal professor Shiller. In pratica viene preso il prezzo di un titolo o il valore di un indice e viene confrontato invece che con l’ultimo andamento degli utili, con un media a 10 anni degli stessi utili. La fotografia del mercato viene estesa a un arco temporale molto lungo capace di cogliere le varie fasi di mercato: valori bassi intorno a 10-15 indicano prospettive interessanti. Questo indicatore infatti viene utilizzato per formulare previsioni di attesa dei rendimenti nei 10 successivi alla rilevazione.  Negli Stati Uniti ad esempio in passato ha fornito scenari realistici.
+    st.markdown('''## Cos'è il CAPE di SHILLER?
+Il termine CAPE sta per cyclically-adjusted price-earnings ratio (Cape), ovvero rapporto prezzo utili aggiustato per i cicli, ed è stato creato dal professor Shiller. In termini molto semplici, viene utilizzato il valore di un indice che viene confrontato, invece che con l’ultimo andamento degli utili, con la media a 10 anni degli utili storici. La fotografia del mercato viene estesa a un arco temporale molto lungo capace di cogliere le varie fasi di mercato: valori bassi intorno a 10-15 indicano prospettive interessanti. Questo indicatore infatti viene utilizzato per formulare ipotesi di attesa dei rendimenti nei 10 successivi alla rilevazione.  Pur essendo impossibile ipotizzare con certezza i rendimenti futuri, lo strumento in passato ha fornito scenari realistici ed una buona correlazione con i rendimenti effettivi futuri.
 ''')
     
     st.markdown('''## L'analisi
 Abbiamo importato i valori del Cape di Shiller dal 1990 e i valori dell' indice S&P500, rappresentativo delle maggiori 500 aziende quotate sul mercato americano.
-<br>
-<br>
-Inseguito abbiamo calcolato i rendimenti delle finestre di 5 anni e le abbiamo collegate al valore del PE di Shiller ad inizio periodo. Ad esempio, la finestra che va dal 31 gennaio 1990 al 31 gennaio 1995 è iniziata con un Shiller pe pari a 17.5 e ha avuto una performance del 43% nel periodo. Quindi si troverà un punto sul grafico che avrà come coordinate 17.5 (valore del PE) sull'asse orizzontale e 43 (la performance) sull' asse verticale.
-<br>
-<br>
-I punti sul grafico sono 370, perchè ad ogni mese corrisponde una finestra temporale che si estende per i successivi 5 anni, fino quella che inizia ad ottobre di 5 anni fa. Successivamente non ci sono dati perchè i 5 anni non sono ancora trascorsi.  ''')
 
+Inseguito abbiamo calcolato i rendimenti delle finestre pluriennali e le abbiamo collegate al valore del PE di Shiller ad inizio periodo. Ad esempio, la finestra di 5 anni che va dal 31 gennaio 1990 al 31 gennaio 1995 è iniziata con un Shiller pe pari a 17.5 e ha avuto una performance del 43% nel periodo. Quindi si troverà un punto sul grafico che avrà come coordinate 17.5 (valore del PE) sull'asse orizzontale e 43 (la performance) sull' asse verticale.
+
+Con finestre mobili di 5 anni, i punti sul grafico sono 370, perchè ad ogni mese corrisponde una finestra temporale che si estende per i successivi 5 anni, fino quella che inizia ad ottobre di 5 anni fa. Successivamente non ci sono dati perchè i 5 anni non sono ancora trascorsi.  ''')
+
+         st.write("""
+    #  
+     """)
+    st.write("""
+    ## DISCLAIMER:
+     """)
+    st.write("""
+    Il contenuto del presente report non costituisce e non può in alcun modo essere interpretato come consulenza finanziaria, né come invito ad acquistare, vendere o detenere strumenti finanziari.
+    Le analisi esposte sono da interpretare come supporto di analisi statistico-quantitativa e sono completamente automatizzate: tutte le indicazioni sono espressione di algoritmi matematici applicati su dati storici.
+    Sebbene tali metodologie rappresentino modelli ampiamente testati e calcolati su una base dati ottenuta da fonti attendibili e verificabili non forniscono alcuna garanzia di profitto.
+    In nessun caso il contenuto del presente report può essere considerato come sollecitazione all’ investimento. Si declina qualsiasi responsabilità legata all'utilizzo improprio di questa applicazione.
+    I contenuti sono di proprietà di **Mauro Pizzini e Fabrizio Monge** e sia la divulgazione, come la riproduzione totale o parziale sono riservati ai sottoscrittori del servizio.
+     """)
