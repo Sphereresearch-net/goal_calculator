@@ -54,7 +54,19 @@ if pagina == 'Pianificatore':
     portafogli = pd.read_excel('portafogli.xlsx') ### Cambia su web
     portafogli = portafogli.set_index('ASSET ',1)
     # portafogli = portafogli.drop('Unnamed: 2',1)
-    portafogli
+    
+
+    listadf = [list(portafogli['O.Temporale'].values)]
+    for col in portafogli.columns[1:]:
+        lista = []
+        li = list(portafogli[col].values)
+        for el in li:
+            valore = str(round(el*100,2))+"%"
+            lista.append(valore)
+        listadf.append(lista)
+    
+    portafogli_ = pd.DataFrame(listadf, index=portafogli.columns, columns=portafogli.index)
+    portafogli_
 
 
     st.write('''###  ''')
