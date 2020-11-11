@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+##!/usr/bin/env python
 # coding: utf-8
 
 # In[ ]:
@@ -13,6 +13,7 @@
 import streamlit as st
 import random
 import pandas as pd
+import investpy
 
 import numpy as np
 from PIL import Image
@@ -29,13 +30,13 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
-image = Image.open('Goal.png')  ### Cambia su web
+image = Image.open(r'C:\Users\user\Downloads\Mauro_app\Goal.png')  ### Cambia su web
 st.sidebar.image(image, use_column_width=True)
 
 
 # In[62]:
 
-pagina = st.sidebar.selectbox("Pagina", ['Pianificatore', 'Modello di regressione Cape'])
+pagina = st.sidebar.selectbox("Pagina", ['Pianificatore', 'Modello di regressione Cape', 'Modello di regressione bonds'])
 
 if pagina == 'Pianificatore':
 
@@ -51,7 +52,7 @@ if pagina == 'Pianificatore':
     # In[157]:
 
 
-    portafogli = pd.read_excel('portafogli.xlsx') ### Cambia su web
+    portafogli = pd.read_excel(r'C:\Users\user\Downloads\Mauro_app\portafogli.xlsx') ### Cambia su web
     portafogli = portafogli.set_index('ASSET ',1)
     # portafogli = portafogli.drop('Unnamed: 2',1)
     
@@ -294,10 +295,98 @@ Il termine CAPE sta per cyclically-adjusted price-earnings ratio (Cape), ovvero 
     
     st.markdown('''## L'analisi
 Abbiamo importato i valori del Cape di Shiller dal 1990 e i valori dell' indice S&P500, rappresentativo delle maggiori 500 aziende quotate sul mercato americano.
-
 Inseguito abbiamo calcolato i rendimenti delle finestre pluriennali e le abbiamo collegate al valore del PE di Shiller ad inizio periodo. Ad esempio, la finestra di 5 anni che va dal 31 gennaio 1990 al 31 gennaio 1995 è iniziata con un Shiller pe pari a 17.5 e ha avuto una performance del 43% nel periodo. Quindi si troverà un punto sul grafico che avrà come coordinate 17.5 (valore del PE) sull'asse orizzontale e 43 (la performance) sull' asse verticale.
-
 Con finestre mobili di 5 anni, i punti sul grafico sono 370, perchè ad ogni mese corrisponde una finestra temporale che si estende per i successivi 5 anni, fino quella che inizia ad ottobre di 5 anni fa. Successivamente non ci sono dati perchè i 5 anni non sono ancora trascorsi.  ''')
+
+    st.write("""
+    #  
+     """)
+    st.write("""
+    ## DISCLAIMER:
+     """)
+    st.write("""
+    Il contenuto del presente report non costituisce e non può in alcun modo essere interpretato come consulenza finanziaria, né come invito ad acquistare, vendere o detenere strumenti finanziari.
+    Le analisi esposte sono da interpretare come supporto di analisi statistico-quantitativa e sono completamente automatizzate: tutte le indicazioni sono espressione di algoritmi matematici applicati su dati storici.
+    Sebbene tali metodologie rappresentino modelli ampiamente testati e calcolati su una base dati ottenuta da fonti attendibili e verificabili non forniscono alcuna garanzia di profitto.
+    In nessun caso il contenuto del presente report può essere considerato come sollecitazione all’ investimento. Si declina qualsiasi responsabilità legata all'utilizzo improprio di questa applicazione.
+    I contenuti sono di proprietà di **Mauro Pizzini e Fabrizio Monge** e sia la divulgazione, come la riproduzione totale o parziale sono riservati ai sottoscrittori del servizio.
+     """)
+
+if pagina == 'Modello di regressione bonds':
+
+
+    st.title('Modello di regressione su rendimenti bonds')
+    st.write('''###  ''')
+
+    proiezioni = 120
+
+    df = investpy.get_bond_historical_data(bond='U.S. 10Y', from_date='01/01/2000', to_date='14/10/2020', interval='Monthly')[['Close']]
+    df = pd.DataFrame(df.values, index=df.index, columns=['Tasso di rendimento'])
+    df_ = investpy.get_index_historical_data(index='TR US 10 Year Government Benchmark', country='united states', from_date='01/01/2000', to_date='14/10/2020', interval='Monthly')[['Close']]
+    df_ = pd.DataFrame(df_.values, columns=['prezzo'], index=df_.index)       
+
+    df = df.join(df_)
+
+    df = df.resample('M').last()
+    df = df.fillna(method='ffill')
+
+    # Build start and end period
+
+    df=df.reset_index()
+
+
+    from datetime import date
+    from dateutil.relativedelta import relativedelta
+
+    lista=[]
+    df['Start']=df['Date']
+    for i in df['Start']:
+        end_ = i+relativedelta(months=+proiezioni)
+        lista.append(end_)
+    df['End']=lista
+    df = df.set_index('Date',1)
+
+    # Build forward
+
+    df['Forward']= (df.prezzo.shift(-proiezioni)/df.prezzo-1)*100
+
+    # Build linear model for prediction
+
+    from sklearn.linear_model import LinearRegression
+    lin = LinearRegression()
+    X = df.dropna()['Tasso di rendimento'].values.reshape(-1,1)
+    y = df.dropna()['Forward'].values
+    lin = lin.fit(X, y)
+
+    #Predict
+    X = df['Tasso di rendimento'].values.reshape(-1,1)
+    df['Forecast -%-']=lin.predict(X)
+
+    df_last=df.tail(1)
+
+    # Plot interactive
+
+    import altair as alt
+    fig1 = alt.Chart(df).mark_circle(size=200).encode(alt.X('Tasso di rendimento',scale=alt.Scale(zero=False)), y='Forward',tooltip=['Start', 'End','Tasso di rendimento','Forward']).properties(height=500)
+    fig2 = alt.Chart(df_last).mark_circle(size=200, color='red').encode(x='Tasso di rendimento', y='Forecast -%-',tooltip=['Start', 'End','Tasso di rendimento', 'Forecast -%-']).properties(height=500)
+    regr = alt.Chart(df).mark_line(color='green').encode(x='Tasso di rendimento',y='Forecast -%-' , size=alt.value(0.6))
+    rule = alt.Chart(df_last).mark_rule(color = 'red', style='dotted').encode( x='Tasso di rendimento',size=alt.value(0.6))
+    immagine2 = fig1+fig2+rule+regr
+
+    st.write('''###  ''')
+    st.write('''### Tabella proiezione Trasury 10Y''')
+
+    df_last_proiezione = df_last[['Forecast -%-']]
+    df_last_proiezione['Forecast -%- ANNUO'] = df_last_proiezione['Forecast -%-']/10
+
+    df_last_proiezione
+
+
+
+    st.write('''###  ''')
+    st.write('''### Grafico del Modello di regressione - Treasury 10Y''')
+
+    st.altair_chart(immagine2, use_container_width=True)
 
     st.write("""
     #  
