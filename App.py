@@ -287,7 +287,7 @@ Inseguito abbiamo calcolato i rendimenti delle finestre pluriennali e le abbiamo
 
 Con finestre mobili di 5 anni, i punti sul grafico sono 370, perchè ad ogni mese corrisponde una finestra temporale che si estende per i successivi 5 anni, fino quella che inizia ad ottobre di 5 anni fa. Successivamente non ci sono dati perchè i 5 anni non sono ancora trascorsi.  ''')
 
-         st.write("""
+    st.write("""
     #  
      """)
     st.write("""
