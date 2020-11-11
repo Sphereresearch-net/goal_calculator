@@ -198,7 +198,7 @@ if pagina == 'Modello di regressione Cape':
     
     st.write('''###  ''')
     st.write('''### Inserire i parametri ''')
-    proiezione = st.slider('proiezione in mesi', 60,120,60)
+    proiezione = st.slider('proiezione in mesi', 60,240,120)
     
     # Import Data market
 
