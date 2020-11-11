@@ -7,3 +7,4 @@ scikit_learn==0.22
 altair
 pandas_datareader
 quandl
+investpy
