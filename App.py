@@ -30,7 +30,7 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
-image = Image.open(r'C:\Users\user\Downloads\Mauro_app\Goal.png')  ### Cambia su web
+image = Image.open('Goal.png')  ### Cambia su web
 st.sidebar.image(image, use_column_width=True)
 
 
@@ -52,7 +52,7 @@ if pagina == 'Pianificatore':
     # In[157]:
 
 
-    portafogli = pd.read_excel(r'C:\Users\user\Downloads\Mauro_app\portafogli.xlsx') ### Cambia su web
+    portafogli = pd.read_excel('portafogli.xlsx') ### Cambia su web
     portafogli = portafogli.set_index('ASSET ',1)
     # portafogli = portafogli.drop('Unnamed: 2',1)
     
