@@ -36,7 +36,7 @@ st.sidebar.image(image, use_column_width=True)
 
 # In[62]:
 
-pagina = st.sidebar.selectbox("Pagina", ['Pianificatore', 'Modello di regressione Cape', 'Modello di regressione bonds', 'Decumulo'])
+pagina = st.sidebar.selectbox("Pagina", ['Pianificatore', 'Modello di regressione Cape', 'Modello di regressione bonds']) #, 'Decumulo'
 
 if pagina == 'Pianificatore':
 
@@ -420,7 +420,7 @@ if pagina == 'Modello di regressione bonds':
     immagine2 = fig1+fig2+rule+regr
 
     st.write('''###  ''')
-    st.write('''### Tabella proiezione Trasury 10Y''')
+    st.write('''### Tabella proiezione Treasury 10Y''')
 
     df_last_proiezione = df_last[['Forecast -%-']]
     df_last_proiezione['Forecast -%- ANNUO'] = df_last_proiezione['Forecast -%-']/10
