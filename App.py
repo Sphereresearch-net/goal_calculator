@@ -36,7 +36,7 @@ st.sidebar.image(image, use_column_width=True)
 
 # In[62]:
 
-pagina = st.sidebar.selectbox("Pagina", ['Pianificatore', 'Modello di regressione Cape', 'Modello di regressione bonds'])
+pagina = st.sidebar.selectbox("Pagina", ['Pianificatore', 'Modello di regressione Cape', 'Modello di regressione bonds', 'Decumulo'])
 
 if pagina == 'Pianificatore':
 
@@ -52,7 +52,7 @@ if pagina == 'Pianificatore':
     # In[157]:
 
 
-    portafogli = pd.read_excel('portafogli.xlsx') ### Cambia su web
+    portafogli = pd.read_excel('portafogli.xlsx') ### Cambia su web C:\Users\user\Downloads\Mauro_app\
     portafogli = portafogli.set_index('ASSET ',1)
     # portafogli = portafogli.drop('Unnamed: 2',1)
     
@@ -86,24 +86,34 @@ if pagina == 'Pianificatore':
 
     # In[ ]:
 
+    elencoportafogli = ['Liquidità']+list(portafogli.index)
 
-    a1 = st.selectbox('Seleziona il portafoglio', list(portafogli.index))
-    a0 = st.number_input('Capitale iniziale', 10000) 
-    a3 = st.number_input('Obiettivo', 10000)
+    a1 = st.selectbox('Seleziona il portafoglio', elencoportafogli)
+    a0 = st.number_input('Capitale iniziale', 0, 10000000,10000) 
+    a3 = st.number_input('Obiettivo', 0, 10000000,10000)
+    a4 = st.slider('Ipotesi di inflazione media %', 0,10, 2)
     a2 = st.slider('Orizzonte temporale in mesi', 0,200, 36)
 
+    a4=a4/100
 
     # In[128]:
 
 
     ## 
     scelta = a1
-    mu = portafogli['REND.ATTESO'][scelta]
-    mu = (mu+1)**(1/12)
 
-    sigma = portafogli['''VOL.ATTESA'''][scelta]
-    sigma = sigma/(12**(1/2))
+    if scelta != 'Liquidità':
 
+        mu = portafogli['REND.ATTESO'][scelta]
+        mu = (mu+1)**(1/12)
+
+        sigma = portafogli['''VOL.ATTESA'''][scelta]
+        sigma = sigma/(12**(1/2))
+    else:
+        mu = None
+        sigma=None
+
+    inflazione = (a4+1)**(1/12)
 
     # In[151]:
 
@@ -115,7 +125,10 @@ if pagina == 'Pianificatore':
         for i1 in range(300):
             lista = [start]
             for i in range (a2):
-                rend = random.normalvariate(mu, sigma)
+                try:
+                    rend = random.normalvariate(mu, sigma)
+                except:
+                    rend=1
                 lista.append(rend)
             lista_serie.append(lista)
 
@@ -127,12 +140,36 @@ if pagina == 'Pianificatore':
 
     # In[154]:
 
-
+    
     df = montecarlo(a0,mu, sigma)
 
+    # aggiungo la colonna obiettivo
 
+    lista_ob = [a3]
+    for i in range(a2):
+        lista_ob.append(inflazione)
+    df['Obiettivo']=lista_ob
+    df['Obiettivo'] = df['Obiettivo'].cumprod()
+
+    # Aggiungo il valore a scadena del versato
+
+    lista_vers = [a0]
+    for i in range(a2):
+        lista_vers.append(inflazione)
+    df_versato = pd.DataFrame(lista_vers, columns=['Versato'])
+    df_versato['Versato'] = df_versato['Versato'].cumprod()
+
+
+    ob_scad = df.tail(1).Obiettivo.values
+    vers_scad = df_versato.tail(1).Versato.values
+    # MOstro l'obiettivo reale a scadenza
+    st.write('''###  ''')
+    st.write('''### Obiettivo reale a scadenza del periodo selezionato''')
+
+    
     # In[156]:
-
+    obiettivo_scadenza = pd.DataFrame(ob_scad, columns = ['''Valore reale dell' obiettivo a scadenza'''], index=['Valore'])
+    obiettivo_scadenza
 
     st.write('''###  ''')
     st.write('''### Rappresentazione grafica di 300 simulazioni''')
@@ -152,20 +189,29 @@ if pagina == 'Pianificatore':
     obiettivo = a3
     rilevazione = a2
 
-    campionamento = df.head(rilevazione).tail(1)
+    campionamento = df.drop('Obiettivo',1).head(rilevazione).tail(1)
 
 
     campionamento_ = np.array(campionamento)
 
 
     st.write('''###  ''')
-    st.write('''### Probabilità calcolate ''')
+    st.write('''### Probabilità calcolate (termini nominali)''')
 
-    proba = len(np.where(campionamento_>obiettivo)[0])/3
-    proba_in = len(np.where(campionamento_>a0)[0])/3
+    proba = len(np.where(campionamento_>=obiettivo)[0])/3
+    proba_in = len(np.where(campionamento_>=a0)[0])/3
     lista_ = [proba, proba_in]
-    df_proba = pd.DataFrame(lista_, index =['Probabilità di raggiungere il capitale obiettivo', 'Probabilità di superare il versamento iniziale'], columns = ['Valori in percentuale'] )
+    df_proba = pd.DataFrame(lista_, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Probabilità di mantenere o superare il versamento iniziale'], columns = ['Valori in percentuale'] )
     df_proba
+
+    st.write('''###  ''')
+    st.write('''### Probabilità calcolate (termini reali)''')
+
+    probar = len(np.where(campionamento_>=ob_scad)[0])/3
+    proba_inr = len(np.where(campionamento_>=vers_scad)[0])/3
+    lista_r = [probar, proba_inr]
+    df_proba_reale = pd.DataFrame(lista_r, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Prob. di mantenere o superare il valore reale del capitale'], columns = ['Valori in percentuale'] )
+    df_proba_reale
 
 
     # # Ad ora le variabili da modificare sono: 
@@ -388,16 +434,125 @@ if pagina == 'Modello di regressione bonds':
 
     st.altair_chart(immagine2, use_container_width=True)
 
-    st.write("""
-    #  
-     """)
-    st.write("""
-    ## DISCLAIMER:
-     """)
-    st.write("""
-    Il contenuto del presente report non costituisce e non può in alcun modo essere interpretato come consulenza finanziaria, né come invito ad acquistare, vendere o detenere strumenti finanziari.
-    Le analisi esposte sono da interpretare come supporto di analisi statistico-quantitativa e sono completamente automatizzate: tutte le indicazioni sono espressione di algoritmi matematici applicati su dati storici.
-    Sebbene tali metodologie rappresentino modelli ampiamente testati e calcolati su una base dati ottenuta da fonti attendibili e verificabili non forniscono alcuna garanzia di profitto.
-    In nessun caso il contenuto del presente report può essere considerato come sollecitazione all’ investimento. Si declina qualsiasi responsabilità legata all'utilizzo improprio di questa applicazione.
-    I contenuti sono di proprietà di **Mauro Pizzini e Fabrizio Monge** e sia la divulgazione, come la riproduzione totale o parziale sono riservati ai sottoscrittori del servizio.
-     """)
+if pagina == 'Decumulo':
+
+    st.title('Pianificatore per obiettivi')
+
+    # In[ ]:
+
+
+    st.write('''###  ''')
+    st.write('''### Portafogli predefiniti''')
+
+
+    # In[157]:
+
+
+    portafogli = pd.read_excel(r'C:\Users\user\Downloads\Mauro_app\portafogli.xlsx') ### Cambia su web
+    portafogli = portafogli.set_index('ASSET ',1)
+    # portafogli = portafogli.drop('Unnamed: 2',1)
+    
+
+    listadf = [list(portafogli['O.Temporale'].values)]
+    for col in portafogli.columns[1:]:
+        lista = []
+        li = list(portafogli[col].values)
+        for el in li:
+            valore = str(round(el*100,2))+"%"
+            lista.append(valore)
+        listadf.append(lista)
+    
+    portafogli_ = pd.DataFrame(listadf, index=portafogli.columns, columns=portafogli.index)
+    portafogli_
+
+
+    st.write('''###  ''')
+    st.write('''### Portafogli predefiniti: rappresentazione grafica''')
+
+    composizione = portafogli[['BOND','COMM','CASH','EQUITY']]
+    composizione = composizione*100
+    st.bar_chart(composizione)
+
+    # In[ ]:
+
+
+    st.write('''###  ''')
+    st.write('''### Seleziona i tuoi parametri''')
+
+
+    # In[ ]:
+
+
+    a1 = st.selectbox('Seleziona il portafoglio', list(portafogli.index))
+    a0 = st.number_input('Capitale iniziale', 10000) 
+    a3 = st.number_input('Rendita finanziaria mensile',0,100000, 1000)
+    a2 = st.slider('Periodo in cui verrà erogata la rendita', 0,200, 60)
+
+
+    # In[128]:
+
+
+    ## 
+    scelta = a1
+    mu = portafogli['REND.ATTESO'][scelta]
+    mu = (mu+1)**(1/12)
+
+    sigma = portafogli['''VOL.ATTESA'''][scelta]
+    sigma = sigma/(12**(1/2))
+
+
+    # In[151]:
+
+
+
+    def montecarlo_rendita(start, mu, sigma, rendita):
+        lista_serie = []
+
+        for i1 in range(300):
+            lista = [start]
+            for i in range (a2):
+                rend = random.normalvariate(mu, sigma)
+                lista.append(rend)
+            lista_serie.append(lista)
+
+        df = pd.DataFrame(lista_serie)
+        df = df.transpose()
+
+
+
+
+        df = df.cumprod()
+        return df
+
+
+    # In[154]:
+
+
+    df = montecarlo(a0,mu, sigma)
+
+
+    # In[156]:
+
+
+    st.write('''###  ''')
+    st.write('''### Rappresentazione grafica di 300 simulazioni''')
+
+
+    df['index']= df.index
+    df = df.set_index('index')
+    df_ = np.log(df)
+    
+
+    df_rendita = pd.DataFrame(index=df.index, columns=df.columns)
+    lista=list(df.index)
+    for i in df_rendita.columns:
+        df_rendita[i]=lista
+
+    df_rendita = df_rendita*a3
+    
+
+    df = (df-df_rendita)
+    df = df[df>0]
+    df = df.fillna(0)
+    
+    st.line_chart(df)
