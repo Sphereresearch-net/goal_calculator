@@ -10,6 +10,7 @@
 # In[159]:
 
 
+
 import streamlit as st
 import random
 import pandas as pd
@@ -29,8 +30,11 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+try:
+    image = Image.open(r'C:\Users\user\Downloads\Mauro_app\Pic&Pac\Goal.png')  ### Cambia su web
+except:
+    image = Image.open('Goal.png')  ### Cambia su web
 
-image = Image.open('Goal.png')  ### Cambia su web
 st.sidebar.image(image, use_column_width=True)
 
 
@@ -51,8 +55,12 @@ if pagina == 'Pianificatore':
 
     # In[157]:
 
+    try:
+        portafogli = pd.read_excel(r'C:\Users\user\Downloads\Mauro_app\Pic&Pac\portafogli.xlsx') ### Cambia su web C:\Users\user\Downloads\Mauro_app\Pic&Pac\
+    except:
+        portafogli = pd.read_excel('portafogli.xlsx') ### Cambia su web C:\Users\user\Downloads\Mauro_app\Pic&Pac\
 
-    portafogli = pd.read_excel('portafogli.xlsx') ### Cambia su web C:\Users\user\Downloads\Mauro_app\
+
     portafogli = portafogli.set_index('ASSET ',1)
     # portafogli = portafogli.drop('Unnamed: 2',1)
     
@@ -86,13 +94,17 @@ if pagina == 'Pianificatore':
 
     # In[ ]:
 
-    elencoportafogli = ['Liquidità']+list(portafogli.index)
+    elencoportafogli = list(portafogli.index)+['Liquidità']
 
     a1 = st.selectbox('Seleziona il portafoglio', elencoportafogli)
-    a0 = st.number_input('Capitale iniziale', 0, 10000000,10000) 
-    a3 = st.number_input('Obiettivo', 0, 10000000,10000)
+    a0 = st.number_input('Capitale iniziale', 0, 10000000,1000000) 
+    a5 = st.number_input('Versamento mensile ricorrente', 0,1000000, 2000)
+    a6 = st.checkbox('Versamenti indicizzati')
+    a2 = st.slider('Orizzonte temporale in mesi', 0,200, 120)
+    a3 = st.number_input('Obiettivo', 0, 10000000,a0+a5*(a2-1))
     a4 = st.slider('Ipotesi di inflazione media %', 0,10, 2)
-    a2 = st.slider('Orizzonte temporale in mesi', 0,200, 36)
+    
+    a3 = round(a3,3)
 
     a4=a4/100
 
@@ -117,6 +129,38 @@ if pagina == 'Pianificatore':
 
     # In[151]:
 
+    ## Produco la tabella con i versamenti indicicizzati
+    lista_versamenti = [a0, a5]
+    for mese in range(2,a2):
+        if a6 == False:
+            versamento_m = a5
+        else:
+            versamento_m = (lista_versamenti[mese-1]*((a4+1)**(1/12)))
+        lista_versamenti.append(versamento_m)
+    
+    # lista_versamenti
+
+    ## Produco la lista con i versamenti cumulati nominali
+
+    lista_versamenti_cum_nom = [lista_versamenti[0]]
+    i = 1
+    for versamento in lista_versamenti[1:]:
+        versato = lista_versamenti_cum_nom[i-1] + versamento
+        lista_versamenti_cum_nom.append(versato)
+        i= i+1
+
+    # lista_versamenti_cum_nom
+
+    ## Produco la lista dei versati reali
+
+    lista_versamenti_cum_real = [lista_versamenti[0]]
+    i = 1
+    for versamento in lista_versamenti[1:]:
+        versato = lista_versamenti_cum_real[i-1] + versamento + (lista_versamenti_cum_real[i-1]*(inflazione-1))
+        lista_versamenti_cum_real.append(versato)
+        i= i+1
+    # lista_versamenti_cum_real
+
 
 
     def montecarlo(start, mu, sigma):
@@ -124,51 +168,52 @@ if pagina == 'Pianificatore':
 
         for i1 in range(300):
             lista = [start]
-            for i in range (a2):
+            for i in range (1,a2):
                 try:
                     rend = random.normalvariate(mu, sigma)
+                    valore = rend*lista[i-1]+lista_versamenti[i]
                 except:
                     rend=1
-                lista.append(rend)
+                    valore = rend*lista[i-1]+lista_versamenti[i]
+                lista.append(valore)
             lista_serie.append(lista)
 
         df = pd.DataFrame(lista_serie)
         df = df.transpose()
-        df = df.cumprod()
+        
         return df
+
+    
 
 
     # In[154]:
 
     
     df = montecarlo(a0,mu, sigma)
+    
 
     # aggiungo la colonna obiettivo
 
     lista_ob = [a3]
-    for i in range(a2):
+    for i in range(1,a2):
         lista_ob.append(inflazione)
     df['Obiettivo']=lista_ob
     df['Obiettivo'] = df['Obiettivo'].cumprod()
 
-    # Aggiungo il valore a scadena del versato
 
-    lista_vers = [a0]
-    for i in range(a2):
-        lista_vers.append(inflazione)
-    df_versato = pd.DataFrame(lista_vers, columns=['Versato'])
-    df_versato['Versato'] = df_versato['Versato'].cumprod()
 
 
     ob_scad = df.tail(1).Obiettivo.values
-    vers_scad = df_versato.tail(1).Versato.values
+    # vers_scad = a0+np.sum(lista_versamenti)
+    # vers_scad = df_versato.tail(1).Versato.values+np.sum(lista_versamenti)
     # MOstro l'obiettivo reale a scadenza
     st.write('''###  ''')
-    st.write('''### Obiettivo reale a scadenza del periodo selezionato''')
-
+    st.write('''### Valori a scadenza del periodo selezionato''')
+    scadenza = [int(round(a3,0)), int(round(ob_scad[0],0)),int(round(lista_versamenti_cum_nom[-1],0)),  int(round(lista_versamenti_cum_real[-1],0))]
     
+
     # In[156]:
-    obiettivo_scadenza = pd.DataFrame(ob_scad, columns = ['''Valore reale dell' obiettivo a scadenza'''], index=['Valore'])
+    obiettivo_scadenza = pd.DataFrame(scadenza, columns = ['''Valore a scadenza'''], index=['Valore nominale del capitale obiettivo', 'Valore reale del capitale obiettivo', 'Somma dei versamenti', 'Parità potere di acquisto dei versamenti'])
     obiettivo_scadenza
 
     st.write('''###  ''')
@@ -178,8 +223,39 @@ if pagina == 'Pianificatore':
     df['index']= df.index
     df = df.set_index('index')
     df_ = np.log(df)
-    st.line_chart(df)
+    # st.line_chart(df)
 
+    # Plot altair
+
+    lista_col=[]
+    lista_mese=[]
+    lista_val=[]
+
+    for col in df.columns:
+        for ind in list(df.index):
+            lista_col.append(str(col))
+            lista_mese.append(ind)
+            lista_val.append(df[col][ind])
+    df_alt = pd.DataFrame(index=range(len(lista_col)))
+    df_alt['Simulazione']=lista_col
+    df_alt['Mese']=lista_mese
+    df_alt['Capitale residuo']=lista_val
+    df_alt['OT'] = a2
+
+
+    import altair as alt
+
+    df_alt_ob = df_alt.loc[df_alt.Simulazione == 'Obiettivo']
+
+    fig1 = alt.Chart(df_alt.loc[df_alt.Simulazione != 'Obiettivo']).mark_line().encode(x='Mese',y='Capitale residuo',color=alt.Color('Simulazione',legend=None),tooltip=['Capitale residuo','Mese']).properties(height=600)
+    fig2 = alt.Chart(df_alt_ob).mark_point(color='black').encode(x='Mese',y='Capitale residuo',tooltip=['Capitale residuo','Mese'], size=alt.value(5))
+    # fig3 = alt.Chart(df_alt).mark_rule(color = 'green', style='dotted').encode( x='OTparz',size=alt.value(4))
+
+    immagine = fig1+fig2
+
+    st.altair_chart(immagine, use_container_width=True)
+
+    
 
     # ## Calcolo le probabilità ad un dato orizzonte
 
@@ -188,8 +264,10 @@ if pagina == 'Pianificatore':
 
     obiettivo = a3
     rilevazione = a2
+    
 
-    campionamento = df.drop('Obiettivo',1).head(rilevazione).tail(1)
+    campionamento = df.drop('Obiettivo',1).head(rilevazione+1).tail(1)
+    
 
 
     campionamento_ = np.array(campionamento)
@@ -198,17 +276,21 @@ if pagina == 'Pianificatore':
     st.write('''###  ''')
     st.write('''### Probabilità calcolate (termini nominali)''')
 
-    proba = len(np.where(campionamento_>=obiettivo)[0])/3
-    proba_in = len(np.where(campionamento_>=a0)[0])/3
+
+
+    proba = len(np.where(campionamento_ >= obiettivo)[0])/3
+    proba_in = len(np.where(campionamento_ >= lista_versamenti_cum_nom[-1])[0])/3
     lista_ = [proba, proba_in]
     df_proba = pd.DataFrame(lista_, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Probabilità di mantenere o superare il versamento iniziale'], columns = ['Valori in percentuale'] )
     df_proba
+
+
 
     st.write('''###  ''')
     st.write('''### Probabilità calcolate (termini reali)''')
 
     probar = len(np.where(campionamento_>=ob_scad)[0])/3
-    proba_inr = len(np.where(campionamento_>=vers_scad)[0])/3
+    proba_inr = len(np.where(campionamento_>=lista_versamenti_cum_real[-1])[0])/3
     lista_r = [probar, proba_inr]
     df_proba_reale = pd.DataFrame(lista_r, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Prob. di mantenere o superare il valore reale del capitale'], columns = ['Valori in percentuale'] )
     df_proba_reale
@@ -228,11 +310,16 @@ if pagina == 'Pianificatore':
 
     statistiche = campionamento.transpose().describe()
     statistiche = statistiche.drop(['count', 'std', 'min', 'max'],0)
-    statistiche['statistiche'] = statistiche.values
-    lista_ind = ["Risultato medio delle simulazioni nell' orizzonte temp.", "Risultato medio primo quartile", "Risultato medio secondo quartile", "Risultato medio terzo quartile"]
-    statistiche = statistiche[['statistiche']]
-    statistiche['indice']=lista_ind
-    statistiche = statistiche.set_index('indice',1)
+    statistiche = pd.DataFrame(statistiche.values, index=statistiche.index, columns=['Statistiche'])
+    
+    lista_statistiche = list(statistiche.Statistiche)
+    lista_statistiche.append(lista_versamenti_cum_nom[-1])
+    lista_statistiche.append(lista_versamenti_cum_real[-1])
+    
+    lista_ind = ["Risultato medio delle simulazioni nell' orizzonte temp.", "Risultato medio primo quartile", "Risultato medio secondo quartile", "Risultato medio terzo quartile", "Totale Versamenti", "Parità potere di acquisto"]
+    statistiche = pd.DataFrame(lista_statistiche, index=lista_ind, columns=['Valori'])
+    
+    
     statistiche
 
 
@@ -555,4 +642,6 @@ if pagina == 'Decumulo':
     df = df[df>0]
     df = df.fillna(0)
     
-    st.line_chart(df)
+    st.line_chart(df)# %%
+
+# %%
