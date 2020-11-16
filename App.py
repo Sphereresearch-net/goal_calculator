@@ -50,7 +50,7 @@ if pagina == 'Pianificatore':
 
 
     st.write('''###  ''')
-    st.write('''### Portafogli predefiniti''')
+    st.write('''## I PORTAFOGLI DISPONIBILI''')
 
 
     # In[157]:
@@ -86,7 +86,8 @@ if pagina == 'Pianificatore':
     st.bar_chart(composizione)
 
     # In[ ]:
-
+    st.write('''###  ''')
+    st.write('''## I PARAMETRI DEL TUO PROGETTO''')
 
     st.write('''###  ''')
     st.write('''### Seleziona i tuoi parametri''')
@@ -215,7 +216,9 @@ if pagina == 'Pianificatore':
     # In[156]:
     obiettivo_scadenza = pd.DataFrame(scadenza, columns = ['''Valore a scadenza'''], index=['Valore nominale del capitale obiettivo', 'Valore reale del capitale obiettivo', 'Somma dei versamenti', 'Parità potere di acquisto dei versamenti'])
     obiettivo_scadenza
-
+    st.write('''###  ''')
+    st.write('''## LE SIMULAZIONI GENERATE''')
+            
     st.write('''###  ''')
     st.write('''### Rappresentazione grafica di 300 simulazioni''')
 
@@ -271,7 +274,8 @@ if pagina == 'Pianificatore':
 
 
     campionamento_ = np.array(campionamento)
-
+    st.write('''###  ''')
+    st.write('''## LO SCENARIO PROBABILISTICO A SCADENZA''')
 
     st.write('''###  ''')
     st.write('''### Probabilità calcolate (termini nominali)''')
