@@ -239,7 +239,7 @@ if pagina == 'Pianificatore':
     df_alt = pd.DataFrame(index=range(len(lista_col)))
     df_alt['Simulazione']=lista_col
     df_alt['Mese']=lista_mese
-    df_alt['Capitale residuo']=lista_val
+    df_alt['Capitale in gestione']=lista_val
     df_alt['OT'] = a2
 
 
@@ -247,8 +247,8 @@ if pagina == 'Pianificatore':
 
     df_alt_ob = df_alt.loc[df_alt.Simulazione == 'Obiettivo']
 
-    fig1 = alt.Chart(df_alt.loc[df_alt.Simulazione != 'Obiettivo']).mark_line().encode(x='Mese',y='Capitale residuo',color=alt.Color('Simulazione',legend=None),tooltip=['Capitale residuo','Mese']).properties(height=600)
-    fig2 = alt.Chart(df_alt_ob).mark_point(color='black').encode(x='Mese',y='Capitale residuo',tooltip=['Capitale residuo','Mese'], size=alt.value(5))
+    fig1 = alt.Chart(df_alt.loc[df_alt.Simulazione != 'Obiettivo']).mark_line().encode(x='Mese',y='Capitale in gestione',color=alt.Color('Simulazione',legend=None),tooltip=['Capitale in gestione','Mese']).properties(height=600)
+    fig2 = alt.Chart(df_alt_ob).mark_point(color='black').encode(x='Mese',y='Capitale in gestione',tooltip=['Capitale in gestione','Mese'], size=alt.value(5))
     # fig3 = alt.Chart(df_alt).mark_rule(color = 'green', style='dotted').encode( x='OTparz',size=alt.value(4))
 
     immagine = fig1+fig2
