@@ -85,6 +85,8 @@ if pagina == 'Pianificatore':
     composizione = composizione*100
     st.bar_chart(composizione)
 
+
+
     # In[ ]:
     st.write('''###  ''')
     st.write('''## I PARAMETRI DEL TUO PROGETTO''')
@@ -95,15 +97,21 @@ if pagina == 'Pianificatore':
 
     # In[ ]:
 
-    elencoportafogli = list(portafogli.index)+['Liquidità']
+    elencoportafogli = list(portafogli.index)+['Liquidità']+['Media e varianza personalizzati']
 
     a1 = st.selectbox('Seleziona il portafoglio', elencoportafogli)
-    a0 = st.number_input('Capitale iniziale', 0, 10000000,1000000) 
-    a5 = st.number_input('Versamento mensile ricorrente', 0,1000000, 2000)
+        
+    if a1 == 'Media e varianza personalizzati':
+        med_pers = st.number_input('Rendimento medio annuo percentuale (esempio: per 5,00% scrivere 5,00)', -40.00,40.00,5.00)
+        vol_pers = st.number_input('Dev. Standard media annuo percentuale (esempio: per 10,00% scrivere 10,00)', -40.00,40.00,10.00)
+        med_pers = med_pers/100
+        vol_pers = vol_pers/100
+    a0 = st.number_input('Capitale iniziale', 0.00, 10000000.00,1000000.00) 
+    a5 = st.number_input('Versamento mensile ricorrente', 0.00,1000000.00, 2000.00)
     a6 = st.checkbox('Versamenti indicizzati')
     a2 = st.slider('Orizzonte temporale in mesi', 0,300, 200)
-    a3 = st.number_input('Obiettivo', 0, 10000000,a0+a5*(a2-1))
-    a4 = st.slider('Ipotesi di inflazione media %', 0,10, 2)
+    a3 = st.number_input('Obiettivo', 0.00, 10000000.00,a0+a5*(a2-1))
+    a4 = st.slider('Ipotesi di inflazione media %', 0.00,10.00, 2.00)
     
     a3 = round(a3,3)
 
@@ -112,16 +120,25 @@ if pagina == 'Pianificatore':
     # In[128]:
 
 
-    ## 
+    ## inserisci if per personalizzati
     scelta = a1
 
-    if scelta != 'Liquidità':
+    if scelta == 'Media e varianza personalizzati':
+
+        mu = med_pers
+        mu = (mu+1)**(1/12)
+        sigma = vol_pers
+        sigma = sigma/(12**(1/2))
+
+
+    elif scelta != 'Liquidità':
 
         mu = portafogli['REND.ATTESO'][scelta]
         mu = (mu+1)**(1/12)
 
         sigma = portafogli['''VOL.ATTESA'''][scelta]
         sigma = sigma/(12**(1/2))
+
     else:
         mu = None
         sigma=None
