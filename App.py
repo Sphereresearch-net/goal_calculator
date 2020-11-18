@@ -101,7 +101,7 @@ if pagina == 'Pianificatore':
     a0 = st.number_input('Capitale iniziale', 0, 10000000,1000000) 
     a5 = st.number_input('Versamento mensile ricorrente', 0,1000000, 2000)
     a6 = st.checkbox('Versamenti indicizzati')
-    a2 = st.slider('Orizzonte temporale in mesi', 0,200, 120)
+    a2 = st.slider('Orizzonte temporale in mesi', 0,300, 200)
     a3 = st.number_input('Obiettivo', 0, 10000000,a0+a5*(a2-1))
     a4 = st.slider('Ipotesi di inflazione media %', 0,10, 2)
     
@@ -185,147 +185,205 @@ if pagina == 'Pianificatore':
         return df
 
     
-
+    
+            
+    
 
     # In[154]:
-
-    
-    df = montecarlo(a0,mu, sigma)
-    
-
-    # aggiungo la colonna obiettivo
-
-    lista_ob = [a3]
-    for i in range(1,a2):
-        lista_ob.append(inflazione)
-    df['Obiettivo']=lista_ob
-    df['Obiettivo'] = df['Obiettivo'].cumprod()
-
-
-
-
-    ob_scad = df.tail(1).Obiettivo.values
-    # vers_scad = a0+np.sum(lista_versamenti)
-    # vers_scad = df_versato.tail(1).Versato.values+np.sum(lista_versamenti)
-    # MOstro l'obiettivo reale a scadenza
     st.write('''###  ''')
-    st.write('''### Valori a scadenza del periodo selezionato''')
-    scadenza = [int(round(a3,0)), int(round(ob_scad[0],0)),int(round(lista_versamenti_cum_nom[-1],0)),  int(round(lista_versamenti_cum_real[-1],0))]
-    
-
-    # In[156]:
-    obiettivo_scadenza = pd.DataFrame(scadenza, columns = ['''Valore a scadenza'''], index=['Valore nominale del capitale obiettivo', 'Valore reale del capitale obiettivo', 'Somma dei versamenti', 'Parità potere di acquisto dei versamenti'])
-    obiettivo_scadenza
+    st.write('''## Clicca il pulsante qua sotto per generare le simulazioni''')
+    singole = st.checkbox('Visualizza le singole simluazioni')
     st.write('''###  ''')
-    st.write('''## LE SIMULAZIONI GENERATE''')
-            
-    st.write('''###  ''')
-    st.write('''### Rappresentazione grafica di 300 simulazioni''')
+    button1 = st.button('''Lancia la simulazione''')
 
-
-    df['index']= df.index
-    df = df.set_index('index')
-    df_ = np.log(df)
-    # st.line_chart(df)
-
-    # Plot altair
-
-    lista_col=[]
-    lista_mese=[]
-    lista_val=[]
-
-    for col in df.columns:
-        for ind in list(df.index):
-            lista_col.append(str(col))
-            lista_mese.append(ind)
-            lista_val.append(df[col][ind])
-    df_alt = pd.DataFrame(index=range(len(lista_col)))
-    df_alt['Simulazione']=lista_col
-    df_alt['Mese']=lista_mese
-    df_alt['Capitale in gestione']=lista_val
-    df_alt['OT'] = a2
-
-
-    import altair as alt
-
-    df_alt_ob = df_alt.loc[df_alt.Simulazione == 'Obiettivo']
-
-    fig1 = alt.Chart(df_alt.loc[df_alt.Simulazione != 'Obiettivo']).mark_line().encode(x='Mese',y='Capitale in gestione',color=alt.Color('Simulazione',legend=None),tooltip=['Capitale in gestione','Mese']).properties(height=600)
-    fig2 = alt.Chart(df_alt_ob).mark_point(color='black').encode(x='Mese',y='Capitale in gestione',tooltip=['Capitale in gestione','Mese'], size=alt.value(5))
-    # fig3 = alt.Chart(df_alt).mark_rule(color = 'green', style='dotted').encode( x='OTparz',size=alt.value(4))
-
-    immagine = fig1+fig2
-
-    st.altair_chart(immagine, use_container_width=True)
-
+    if button1 == True:
+        df = montecarlo(a0,mu, sigma)
     
 
-    # ## Calcolo le probabilità ad un dato orizzonte
+        # aggiungo la colonna obiettivo
 
-    # In[148]:
-
-
-    obiettivo = a3
-    rilevazione = a2
-    
-
-    campionamento = df.drop('Obiettivo',1).head(rilevazione+1).tail(1)
-    
-
-
-    campionamento_ = np.array(campionamento)
-    st.write('''###  ''')
-    st.write('''## LO SCENARIO PROBABILISTICO A SCADENZA''')
-
-    st.write('''###  ''')
-    st.write('''### Probabilità calcolate (termini nominali)''')
+        lista_ob = [a3]
+        for i in range(1,a2):
+            lista_ob.append(inflazione)
+        df['Obiettivo']=lista_ob
+        df['Obiettivo'] = df['Obiettivo'].cumprod()
 
 
 
-    proba = len(np.where(campionamento_ >= obiettivo)[0])/3
-    proba_in = len(np.where(campionamento_ >= lista_versamenti_cum_nom[-1])[0])/3
-    lista_ = [proba, proba_in]
-    df_proba = pd.DataFrame(lista_, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Probabilità di mantenere o superare il versamento iniziale'], columns = ['Valori in percentuale'] )
-    df_proba
+
+        ob_scad = df.tail(1).Obiettivo.values
+        # vers_scad = a0+np.sum(lista_versamenti)
+        # vers_scad = df_versato.tail(1).Versato.values+np.sum(lista_versamenti)
+        # MOstro l'obiettivo reale a scadenza
+        st.write('''###  ''')
+        st.write('''### Valori a scadenza del periodo selezionato''')
+        scadenza = [int(round(a3,0)), int(round(ob_scad[0],0)),int(round(lista_versamenti_cum_nom[-1],0)),  int(round(lista_versamenti_cum_real[-1],0))]
+        
+
+        # In[156]:
+        obiettivo_scadenza = pd.DataFrame(scadenza, columns = ['''Valore a scadenza'''], index=['Valore nominale del capitale obiettivo', 'Valore reale del capitale obiettivo', 'Somma dei versamenti', 'Parità potere di acquisto dei versamenti'])
+        obiettivo_scadenza
+
+        st.write('''###  ''')
+        st.write('''## LE SIMULAZIONI GENERATE''')
+
+        
+
+        st.write('''###  ''')
+        st.write('''### Rappresentazione grafica delle simulazioni compatibili con i parametri che hai inserito''')
+
+
+        df['index']= df.index
+        df = df.set_index('index')
+        df_ = np.log(df)
+        # st.line_chart(df)
+
+        
+        df['Migliore'] = df.drop('Obiettivo',1).max(axis=1)
+        df['Peggiore'] = df.drop('Obiettivo',1).min(axis=1)
+        df['Mediana'] = df.drop('Obiettivo',1).median(axis=1)
+        
+        # Campiona le serie a 3
+
+        lista_camp=[]
+        for i in range(0,len(df)-4,3):
+            lista_camp.append(1)
+            lista_camp.append(2)
+            lista_camp.append(3)
+        while len(lista_camp)<len(df):
+            lista_camp.append(1)
+
+        df['camp'] = lista_camp
+
+        df = df.loc[df.camp == 1]
+        df = df.drop('camp',1)
+
+
+        # prepara il df per il Plot altair
+
+        lista_col=[]
+        lista_mese=[]
+        lista_val=[]
+
+        for col in df.columns:
+            for ind in list(df.index):
+                lista_col.append(str(col))
+                lista_mese.append(ind)
+                lista_val.append(df[col][ind])
+        df_alt = pd.DataFrame(index=range(len(lista_col)))
+        df_alt['Simulazione']=lista_col
+        df_alt['Mese']=lista_mese
+        df_alt['Capitale in gestione']=lista_val
+        df_alt['OT'] = a2
+        
+        # df_alt['Capitale in gestione'] = np.log(df_alt['Capitale in gestione'])
 
 
 
-    st.write('''###  ''')
-    st.write('''### Probabilità calcolate (termini reali)''')
+        import altair as alt
 
-    probar = len(np.where(campionamento_>=ob_scad)[0])/3
-    proba_inr = len(np.where(campionamento_>=lista_versamenti_cum_real[-1])[0])/3
-    lista_r = [probar, proba_inr]
-    df_proba_reale = pd.DataFrame(lista_r, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Prob. di mantenere o superare il valore reale del capitale'], columns = ['Valori in percentuale'] )
-    df_proba_reale
+        df_alt_ob = df_alt.loc[df_alt.Simulazione == 'Obiettivo']
+        df_alt_sim = df_alt.loc[df_alt.Simulazione != 'Obiettivo']
+        df_alt_sim = df_alt.loc[df_alt.Simulazione != 'Migliore']
+        df_alt_sim = df_alt.loc[df_alt.Simulazione != 'Peggiore']
+        df_alt_sim = df_alt.loc[df_alt.Simulazione != 'Mediana']
+        df_alt_best = df_alt.loc[df_alt.Simulazione == 'Migliore']
+        df_alt_worst = df_alt.loc[df_alt.Simulazione == 'Peggiore']
+        df_alt_median = df_alt.loc[df_alt.Simulazione == 'Mediana']
+
+        massimo = df_alt_best['Capitale in gestione'].max()
+        minimo = df_alt_worst['Capitale in gestione'].min()
+        minimo = int(round(np.log2(minimo),0))
+        minimo = 2**(minimo-1)
+        massimo = int(round(np.log2(massimo),0))
+        massimo = 2**(massimo+1)
+       
 
 
-    # # Ad ora le variabili da modificare sono: 
-    # - media e varianza
-    # - orizzonte temporale (rilevazione)
-    # - importo iniziale 
-    # 
+        fig1 = alt.Chart(df_alt_sim).mark_line().encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),color=alt.Color('Simulazione',legend=None),tooltip=['Capitale in gestione','Mese']).properties(height=600)
+        fig2 = alt.Chart(df_alt_ob).mark_point(color='black').encode(x='Mese',y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))), size=alt.value(5))
+        fig3 = alt.Chart(df_alt_best).mark_line(color = 'green', opacity =0.5).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
+        fig4 = alt.Chart(df_alt_worst).mark_line(color = 'red', opacity = 0.5).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
+        fig5 = alt.Chart(df_alt_median).mark_line(color = 'blue', opacity = 0.5).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
+        # fig3 = alt.Chart(df_alt).mark_rule(color = 'green', style='dotted').encode( x='OTparz',size=alt.value(4))
 
-    # In[138]:
+        if singole == True:
+            immagine = fig4 + fig3 +fig1 + fig2+fig5
+        else:
+            immagine = fig4 +fig3 + fig2 + fig5
+        
+        st.altair_chart(immagine, use_container_width=True)
+
+        
+
+        # ## Calcolo le probabilità ad un dato orizzonte
+
+        # In[148]:
 
 
-    st.write('''###  ''')
-    st.write('''### Statistiche sull' orizzonte selezionato ''')
+        obiettivo = a3
+        rilevazione = len(df)
+        
 
-    statistiche = campionamento.transpose().describe()
-    statistiche = statistiche.drop(['count', 'std', 'min', 'max'],0)
-    statistiche = pd.DataFrame(statistiche.values, index=statistiche.index, columns=['Statistiche'])
-    
-    lista_statistiche = list(statistiche.Statistiche)
-    lista_statistiche.append(lista_versamenti_cum_nom[-1])
-    lista_statistiche.append(lista_versamenti_cum_real[-1])
-    
-    lista_ind = ["Risultato medio delle simulazioni nell' orizzonte temp.", "Risultato medio primo quartile", "Risultato medio secondo quartile", "Risultato medio terzo quartile", "Totale Versamenti", "Parità potere di acquisto"]
-    statistiche = pd.DataFrame(lista_statistiche, index=lista_ind, columns=['Valori'])
-    
-    
-    statistiche
+        campionamento = df.drop(['Obiettivo','Migliore', 'Peggiore', 'Mediana'],1).head(rilevazione+1).tail(1)
+        
 
+
+        campionamento_ = np.array(campionamento)
+        st.write('''###  ''')
+        st.write('''## LO SCENARIO PROBABILISTICO A SCADENZA''')
+
+        st.write('''###  ''')
+        st.write('''### Probabilità calcolate (termini nominali)''')
+
+
+
+        proba = len(np.where(campionamento_ >= obiettivo)[0])/3
+        proba_in = len(np.where(campionamento_ >= lista_versamenti_cum_nom[-1])[0])/3
+        lista_ = [proba, proba_in]
+        df_proba = pd.DataFrame(lista_, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Probabilità di mantenere o superare il versamento iniziale'], columns = ['Valori in percentuale'] )
+        df_proba
+
+
+
+        st.write('''###  ''')
+        st.write('''### Probabilità calcolate (termini reali)''')
+
+        probar = len(np.where(campionamento_>=ob_scad)[0])/3
+        proba_inr = len(np.where(campionamento_>=lista_versamenti_cum_real[-1])[0])/3
+        lista_r = [probar, proba_inr]
+        df_proba_reale = pd.DataFrame(lista_r, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Prob. di mantenere o superare il valore reale del capitale'], columns = ['Valori in percentuale'] )
+        df_proba_reale
+
+
+        # # Ad ora le variabili da modificare sono: 
+        # - media e varianza
+        # - orizzonte temporale (rilevazione)
+        # - importo iniziale 
+        # 
+
+        # In[138]:
+
+
+        st.write('''###  ''')
+        st.write('''### Statistiche sull' orizzonte selezionato ''')
+
+        statistiche = campionamento.transpose().describe()
+        statistiche = statistiche.drop(['count', 'std', 'min', 'max'],0)
+        statistiche = pd.DataFrame(statistiche.values, index=statistiche.index, columns=['Statistiche'])
+        
+        lista_statistiche = list(statistiche.Statistiche)
+        lista_statistiche.append(lista_versamenti_cum_nom[-1])
+        lista_statistiche.append(lista_versamenti_cum_real[-1])
+        
+        lista_ind = ["Risultato medio delle simulazioni nell' orizzonte temp.", "Risultato medio primo quartile", "Risultato medio secondo quartile", "Risultato medio terzo quartile", "Totale Versamenti", "Parità potere di acquisto"]
+        statistiche = pd.DataFrame(lista_statistiche, index=lista_ind, columns=['Valori'])
+        
+        
+        statistiche
+
+    else:
+        st.write('''#### Lanciando la simulazione sarà possibile visualizzare uno scenario probabilistico del tuo piano di investimento basato sui parametri selezionati e sui dati storici di mercato''')
 
     st.write("""
     #  
