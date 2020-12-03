@@ -40,11 +40,11 @@ st.sidebar.image(image, use_column_width=True)
 
 # In[62]:
 
-pagina = st.sidebar.selectbox("Pagina", ['Pianificatore', 'Modello di regressione Cape', 'Modello di regressione bonds']) #, 'Decumulo'
+pagina = st.sidebar.selectbox("Pagina", ['Simulazione di scenario']) #, 'Decumulo'
 
-if pagina == 'Pianificatore':
+if pagina == 'Simulazione di scenario':
 
-    st.title('Pianificatore per obiettivi')
+    st.title('Simulazione di scenario')
 
     # In[ ]:
 
@@ -75,7 +75,7 @@ if pagina == 'Pianificatore':
         listadf.append(lista)
     
     portafogli_ = pd.DataFrame(listadf, index=portafogli.columns, columns=portafogli.index)
-    portafogli_
+    # portafogli_
 
 
     st.write('''###  ''')
@@ -106,12 +106,13 @@ if pagina == 'Pianificatore':
         vol_pers = st.number_input('Dev. Standard media annuo percentuale (esempio: per 10,00% scrivere 10,00)', -40.00,40.00,10.00)
         med_pers = med_pers/100
         vol_pers = vol_pers/100
-    a0 = st.number_input('Capitale iniziale', 0.00, 10000000.00,1000000.00) 
+    a0 = st.number_input('Capitale iniziale', 1.00, 10000000.00,1000000.00) 
     a5 = st.number_input('Versamento mensile ricorrente', 0.00,1000000.00, 2000.00)
     a6 = st.checkbox('Versamenti indicizzati')
     a2 = st.slider('Orizzonte temporale in mesi', 0,300, 200)
-    a3 = st.number_input('Obiettivo', 0.00, 10000000.00,a0+a5*(a2-1))
     a4 = st.slider('Ipotesi di inflazione media %', 0.00,10.00, 2.00)
+    a3 = st.number_input("Obiettivo (l'obiettivo proposto dalla macchina rappresenta la somma dei versamenti)", 0.00, 10000000.00,a0+a5*(a2-1))
+  
     
     a3 = round(a3,3)
 
@@ -208,10 +209,10 @@ if pagina == 'Pianificatore':
 
     # In[154]:
     st.write('''###  ''')
-    st.write('''## Clicca il pulsante qua sotto per generare le simulazioni''')
+    st.write('''## Clicca il pulsante qua sotto per generare lo scenario''')
     singole = st.checkbox('Visualizza le singole simluazioni')
     st.write('''###  ''')
-    button1 = st.button('''Lancia la simulazione''')
+    button1 = st.button('''Genera uno scenario probabilistico''')
 
     if button1 == True:
         df = montecarlo(a0,mu, sigma)
@@ -242,7 +243,7 @@ if pagina == 'Pianificatore':
         obiettivo_scadenza
 
         st.write('''###  ''')
-        st.write('''## LE SIMULAZIONI GENERATE''')
+        st.write('''## LO SCENARIO GENERATO''')
 
         
 
@@ -256,8 +257,9 @@ if pagina == 'Pianificatore':
         # st.line_chart(df)
 
         
-        df['Migliore'] = df.drop('Obiettivo',1).max(axis=1)
-        df['Peggiore'] = df.drop('Obiettivo',1).min(axis=1)
+        
+        df['Migliore'] = np.quantile(df.drop('Obiettivo',1), 0.95, axis=1)
+        df['Peggiore'] = np.quantile(df.drop('Obiettivo',1), 0.05, axis=1)
         df['Mediana'] = df.drop('Obiettivo',1).median(axis=1)
         
         # Campiona le serie a 3
@@ -317,15 +319,15 @@ if pagina == 'Pianificatore':
        
 
 
-        fig1 = alt.Chart(df_alt_sim).mark_line().encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),color=alt.Color('Simulazione',legend=None),tooltip=['Capitale in gestione','Mese']).properties(height=600)
+        fig1 = alt.Chart(df_alt_sim).mark_line(color='grey',opacity = 0.2).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),color=alt.Color('Simulazione',legend=None),tooltip=['Capitale in gestione','Mese']).properties(height=600)
         fig2 = alt.Chart(df_alt_ob).mark_point(color='black').encode(x='Mese',y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))), size=alt.value(5))
-        fig3 = alt.Chart(df_alt_best).mark_line(color = 'green', opacity =0.5).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
-        fig4 = alt.Chart(df_alt_worst).mark_line(color = 'red', opacity = 0.5).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
-        fig5 = alt.Chart(df_alt_median).mark_line(color = 'blue', opacity = 0.5).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
+        fig3 = alt.Chart(df_alt_best).mark_line(color = 'green', opacity =0.9).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
+        fig4 = alt.Chart(df_alt_worst).mark_line(color = 'red', opacity = 0.9).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
+        fig5 = alt.Chart(df_alt_median).mark_line(color = 'blue', opacity = 0.9).encode(x=alt.X('Mese:Q'),y=alt.Y('Capitale in gestione:Q', scale=alt.Scale(type='log',base=2,domain=(minimo, massimo))),tooltip=['Capitale in gestione','Mese'], size=alt.value(5)).properties(height=600)
         # fig3 = alt.Chart(df_alt).mark_rule(color = 'green', style='dotted').encode( x='OTparz',size=alt.value(4))
 
         if singole == True:
-            immagine = fig4 + fig3 +fig1 + fig2+fig5
+            immagine = fig1+fig4 + fig3 + fig2+fig5
         else:
             immagine = fig4 +fig3 + fig2 + fig5
         
