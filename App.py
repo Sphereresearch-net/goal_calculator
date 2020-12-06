@@ -40,7 +40,7 @@ st.sidebar.image(image, use_column_width=True)
 
 # In[62]:
 
-pagina = st.sidebar.selectbox("Pagina", ['Simulazione di scenario', 'Modello di regressione Cape', 'Modello di regressione bonds']) #, 'Decumulo'
+pagina = st.sidebar.selectbox("Pagina", ['Simulazione di scenario', 'Modello di regressione Cape', 'Modello di regressione bonds', 'Valori portafogli']) #, 'Decumulo'
 
 if pagina == 'Simulazione di scenario':
 
@@ -418,6 +418,43 @@ if pagina == 'Simulazione di scenario':
 
     else:
         st.write('''#### Lanciando la simulazione sarà possibile visualizzare uno scenario probabilistico del tuo piano di investimento basato sui parametri selezionati e sui dati storici di mercato''')
+
+    st.write("""
+    #  
+     """)
+    st.write("""
+    ## DISCLAIMER:
+     """)
+    st.write("""
+    Il contenuto del presente report non costituisce e non può in alcun modo essere interpretato come consulenza finanziaria, né come invito ad acquistare, vendere o detenere strumenti finanziari.
+    Le analisi esposte sono da interpretare come supporto di analisi statistico-quantitativa e sono completamente automatizzate: tutte le indicazioni sono espressione di algoritmi matematici applicati su dati storici.
+    Sebbene tali metodologie rappresentino modelli ampiamente testati e calcolati su una base dati ottenuta da fonti attendibili e verificabili non forniscono alcuna garanzia di profitto.
+    In nessun caso il contenuto del presente report può essere considerato come sollecitazione all’ investimento. Si declina qualsiasi responsabilità legata all'utilizzo improprio di questa applicazione.
+    I contenuti sono di proprietà di **Mauro Pizzini e Fabrizio Monge** e sia la divulgazione, come la riproduzione totale o parziale sono riservati ai sottoscrittori del servizio.
+     """)
+if pagina == 'Valori portafogli':
+
+    try:
+        portafogli = pd.read_excel(r'C:\Users\user\Downloads\Mauro_app\Pic&Pac\portafogli.xlsx') ### Cambia su web C:\Users\user\Downloads\Mauro_app\Pic&Pac\
+    except:
+        portafogli = pd.read_excel('portafogli.xlsx') ### Cambia su web C:\Users\user\Downloads\Mauro_app\Pic&Pac\
+
+
+    portafogli = portafogli.set_index('ASSET ',1)
+    # portafogli = portafogli.drop('Unnamed: 2',1)
+    
+
+    listadf = [list(portafogli['O.Temporale'].values)]
+    for col in portafogli.columns[1:]:
+        lista = []
+        li = list(portafogli[col].values)
+        for el in li:
+            valore = str(round(el*100,2))+"%"
+            lista.append(valore)
+        listadf.append(lista)
+    portafogli_ = pd.DataFrame(listadf, index=portafogli.columns, columns=portafogli.index)
+    st.title('''Parametri portafogli predefiniti''')
+    portafogli_
 
     st.write("""
     #  
