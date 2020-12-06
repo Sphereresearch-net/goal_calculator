@@ -40,7 +40,7 @@ st.sidebar.image(image, use_column_width=True)
 
 # In[62]:
 
-pagina = st.sidebar.selectbox("Pagina", ['Simulazione di scenario']) #, 'Decumulo'
+pagina = st.sidebar.selectbox("Pagina", ['Simulazione di scenario', 'Modello di regressione Cape', 'Modello di regressione bonds']) #, 'Decumulo'
 
 if pagina == 'Simulazione di scenario':
 
@@ -240,7 +240,17 @@ if pagina == 'Simulazione di scenario':
 
         # In[156]:
         obiettivo_scadenza = pd.DataFrame(scadenza, columns = ['''Valore a scadenza'''], index=['Valore nominale del capitale obiettivo', 'Valore reale del capitale obiettivo', 'Somma dei versamenti', 'Parità potere di acquisto dei versamenti'])
-        obiettivo_scadenza
+        
+        def format_eur(x):
+            return "{:,.2f} €".format(x)
+
+        def format_perc(x):
+            return "{:,.2f} %".format(x)
+        
+        obiettivo_scadenza_st = obiettivo_scadenza
+        obiettivo_scadenza_st['''Valore a scadenza''']=obiettivo_scadenza_st['''Valore a scadenza'''].apply(format_eur)
+        
+        obiettivo_scadenza_st
 
         st.write('''###  ''')
         st.write('''## LO SCENARIO GENERATO''')
@@ -361,7 +371,9 @@ if pagina == 'Simulazione di scenario':
         proba_in = len(np.where(campionamento_ >= lista_versamenti_cum_nom[-1])[0])/3
         lista_ = [proba, proba_in]
         df_proba = pd.DataFrame(lista_, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Probabilità di mantenere o superare il versamento iniziale'], columns = ['Valori in percentuale'] )
-        df_proba
+        df_proba_st = df_proba
+        df_proba_st['Valori in percentuale'] = df_proba_st['Valori in percentuale'].apply(format_perc)
+        df_proba_st
 
 
 
@@ -372,7 +384,9 @@ if pagina == 'Simulazione di scenario':
         proba_inr = len(np.where(campionamento_>=lista_versamenti_cum_real[-1])[0])/3
         lista_r = [probar, proba_inr]
         df_proba_reale = pd.DataFrame(lista_r, index =['Probabilità di raggiungere o superare il capitale obiettivo', 'Prob. di mantenere o superare il valore reale del capitale'], columns = ['Valori in percentuale'] )
-        df_proba_reale
+        df_proba_reale_st = df_proba_reale
+        df_proba_reale_st['Valori in percentuale'] = df_proba_reale_st['Valori in percentuale'].apply(format_perc)
+        df_proba_reale_st
 
 
         # # Ad ora le variabili da modificare sono: 
@@ -398,8 +412,9 @@ if pagina == 'Simulazione di scenario':
         lista_ind = ["Risultato medio delle simulazioni nell' orizzonte temp.", "Risultato medio primo quartile", "Risultato medio secondo quartile", "Risultato medio terzo quartile", "Totale Versamenti", "Parità potere di acquisto"]
         statistiche = pd.DataFrame(lista_statistiche, index=lista_ind, columns=['Valori'])
         
-        
-        statistiche
+        statistiche_st=statistiche
+        statistiche_st['Valori']=statistiche_st['Valori'].apply(format_eur)
+        statistiche_st
 
     else:
         st.write('''#### Lanciando la simulazione sarà possibile visualizzare uno scenario probabilistico del tuo piano di investimento basato sui parametri selezionati e sui dati storici di mercato''')
