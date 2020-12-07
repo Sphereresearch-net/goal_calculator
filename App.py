@@ -165,8 +165,12 @@ if pagina == 'Simulazione di scenario':
         med_pers = med_pers/100
         vol_pers = vol_pers/100
     a0 = st.text_input('Capitale iniziale','100.000 €' ) #1.00, 10000000.00,1000000.00
+    if a0 == '':
+        a0 = '1'
     a0 = numerize(a0)
     a5 = st.text_input('Versamento mensile ricorrente','200 €') #0.00,1000000.00, 2000.00
+    if a5 == '':
+        a5 = '0'
     a5 = numerize(a5)
     a6 = st.checkbox('Versamenti indicizzati')
     a2 = st.slider('Orizzonte temporale in anni', 0,40, 20)
