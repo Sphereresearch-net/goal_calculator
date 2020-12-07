@@ -40,7 +40,59 @@ st.sidebar.image(image, use_column_width=True)
 
 # In[62]:
 
-pagina = st.sidebar.selectbox("Pagina", ['Simulazione di scenario', 'Modello di regressione Cape', 'Modello di regressione bonds', 'Valori portafogli']) #, 'Decumulo'
+def numerize(testo):
+    lista = []
+    for i in range(len(testo)):
+        lettera = testo[i]
+        
+        if lettera == '.' or lettera == '€' or lettera == ' ':
+            pass
+        else:
+            lista.append(lettera)
+    let_num = lista[0]
+    for i in range(1,len(lista)):
+        if lista[i]==',':
+            lista[i]='.'
+        let_num = let_num+lista[i]
+    out = float(let_num)
+    return out
+
+def eurize(numero):
+    stringa = str(numero)
+    lista = []
+    for i in range(len(stringa)):     
+        lista.append(stringa[i])
+    lista.reverse()
+    stringa = lista[0]
+    for i in lista[1:]:
+        stringa=stringa+i
+    lista=[]
+    for i in range(len(stringa)):
+        if len(stringa)>3 and i == 3:
+            punto = '.'
+            lista.append(punto)
+        if len(stringa)>6 and i == 6:
+            punto = '.'
+            lista.append(punto)
+        if len(stringa)>9 and i == 9:
+            punto = '.'
+            lista.append(punto)
+        lista.append(stringa[i])
+        
+    lista.reverse()
+    out = lista[0]
+    for i in range(1,len(lista)):
+        out =out+lista[i]
+    out = out + ',00 €'
+    return(out)
+
+def format_eur(x):
+    return "{:,.2f} €".format(x)
+
+def format_perc(x):
+    return "{:,.2f} %".format(x)
+
+pagina = st.sidebar.selectbox("Pagina", ['Simulazione di scenario', 'Valori portafogli']) #, 'Decumulo' , 'Modello di regressione Cape', 'Modello di regressione bonds'
 
 if pagina == 'Simulazione di scenario':
 
@@ -106,12 +158,20 @@ if pagina == 'Simulazione di scenario':
         vol_pers = st.number_input('Dev. Standard media annuo percentuale (esempio: per 10,00% scrivere 10,00)', -40.00,40.00,10.00)
         med_pers = med_pers/100
         vol_pers = vol_pers/100
-    a0 = st.number_input('Capitale iniziale', 1.00, 10000000.00,1000000.00) 
-    a5 = st.number_input('Versamento mensile ricorrente', 0.00,1000000.00, 2000.00)
+    a0 = st.text_input('Capitale iniziale','100.000 €' ) #1.00, 10000000.00,1000000.00
+    a0 = numerize(a0)
+    a5 = st.text_input('Versamento mensile ricorrente','200 €') #0.00,1000000.00, 2000.00
+    a5 = numerize(a5)
     a6 = st.checkbox('Versamenti indicizzati')
-    a2 = st.slider('Orizzonte temporale in mesi', 0,300, 200)
+    a2 = st.slider('Orizzonte temporale in anni', 0,40, 20)
+    a2=a2*12
     a4 = st.slider('Ipotesi di inflazione media %', 0.00,10.00, 2.00)
-    a3 = st.number_input("Obiettivo (l'obiettivo proposto dalla macchina rappresenta la somma dei versamenti)", 0.00, 10000000.00,a0+a5*(a2-1))
+    ob_def = a0+a5*(a2-1)
+    ob_def = int(ob_def)
+    ob_def = eurize(ob_def)
+    
+    a3 = st.text_input("Obiettivo (l'obiettivo proposto dalla macchina rappresenta la somma dei versamenti)", ob_def)
+    a3=numerize(a3)
   
     
     a3 = round(a3,3)
@@ -241,11 +301,7 @@ if pagina == 'Simulazione di scenario':
         # In[156]:
         obiettivo_scadenza = pd.DataFrame(scadenza, columns = ['''Valore a scadenza'''], index=['Valore nominale del capitale obiettivo', 'Valore reale del capitale obiettivo', 'Somma dei versamenti', 'Parità potere di acquisto dei versamenti'])
         
-        def format_eur(x):
-            return "{:,.2f} €".format(x)
 
-        def format_perc(x):
-            return "{:,.2f} %".format(x)
         
         obiettivo_scadenza_st = obiettivo_scadenza
         obiettivo_scadenza_st['''Valore a scadenza''']=obiettivo_scadenza_st['''Valore a scadenza'''].apply(format_eur)
@@ -455,6 +511,14 @@ if pagina == 'Valori portafogli':
     portafogli_ = pd.DataFrame(listadf, index=portafogli.columns, columns=portafogli.index)
     st.title('''Parametri portafogli predefiniti''')
     portafogli_
+
+    # portafogli = portafogli[['REND.ATTESO', 'VOL.ATTESA']].reset_index()
+    # portafogli = portafogli*100
+    # portafogli['portafoglio'] = portafogli.index
+    # portafogli
+    # import altair as alt
+    # fig1 = alt.Chart(portafogli).mark_circle(size=400).encode(x=('REND.ATTESO'),y=('VOL.ATTESA'),color=('portafoglio'),tooltip=['REND.ATTESO','VOL.ATTESA']).properties(height=600)
+    # st.altair_chart(fig1, use_container_width=True)
 
     st.write("""
     #  
