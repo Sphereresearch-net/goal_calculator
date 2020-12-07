@@ -176,9 +176,10 @@ if pagina == 'Simulazione di scenario':
     ob_def = int(ob_def)
     ob_def = eurize(ob_def)
     
+    
     a3 = st.text_input("Obiettivo (l'obiettivo proposto dalla macchina rappresenta la somma dei versamenti)", ob_def)
     a3=numerize(a3)
-  
+    a3=a3/100
     
     a3 = round(a3,3)
 
