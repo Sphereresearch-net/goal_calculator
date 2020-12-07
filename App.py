@@ -465,18 +465,19 @@ if pagina == 'Simulazione di scenario':
         st.write('''### Statistiche sull' orizzonte selezionato ''')
 
         statistiche = campionamento.transpose().describe()
-        statistiche = statistiche.drop(['count', 'std', 'min', 'max'],0)
+        statistiche = statistiche.drop(['mean','count', 'std', 'min', 'max'],0)
+        # statistiche
         statistiche = pd.DataFrame(statistiche.values, index=statistiche.index, columns=['Statistiche'])
         
         lista_statistiche = list(statistiche.Statistiche)
         lista_statistiche.append(lista_versamenti_cum_nom[-1])
         lista_statistiche.append(lista_versamenti_cum_real[-1])
         
-        lista_ind = ["Risultato medio delle simulazioni nell' orizzonte temp.", "Risultato medio primo quartile", "Risultato medio secondo quartile", "Risultato medio terzo quartile", "Totale Versamenti", "Parità potere di acquisto"]
-        statistiche = pd.DataFrame(lista_statistiche, index=lista_ind, columns=['Valori'])
+        lista_ind = ["Risultato medio SCENARIO SFAVOREVOLE", "Risultato medio SCENARIO MEDIANO", "Risultato medio SCENARIO FAVOREVOLE", "Totale Versamenti", "Parità potere di acquisto"]
+        statistiche = pd.DataFrame(lista_statistiche, index=lista_ind, columns=['Valori in Euro al termine del piano'])
         
         statistiche_st=statistiche
-        statistiche_st['Valori']=statistiche_st['Valori'].apply(format_eur)
+        statistiche_st['Valori in Euro al termine del piano']=statistiche_st['Valori in Euro al termine del piano'].apply(format_eur)
         statistiche_st
 
     else:
