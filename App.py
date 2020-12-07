@@ -44,8 +44,14 @@ def numerize(testo):
     lista = []
     for i in range(len(testo)):
         lettera = testo[i]
+
+        try:
+            int(lettera)
+            tipo= 'numero'
+        except:
+            tipo = 'stringa'
         
-        if lettera == '.' or lettera == '€' or lettera == ' ':
+        if lettera == '.' or lettera == '€' or lettera == ' ' or tipo == 'stringa':
             pass
         else:
             lista.append(lettera)
